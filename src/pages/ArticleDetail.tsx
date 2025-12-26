@@ -6,9 +6,10 @@ import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   BookOpen, Calendar, Download, FileText, 
-  ArrowLeft, Eye, Copy, ExternalLink, User
+  ArrowLeft, Eye, Copy, ExternalLink, User, Check
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useState } from 'react';
@@ -134,24 +135,97 @@ const ArticleDetail = () => {
     }
   };
 
-  const copyToClipboard = (text: string) => {
+  const [copiedFormat, setCopiedFormat] = useState<string | null>(null);
+
+  const copyToClipboard = (text: string, format: string) => {
     navigator.clipboard.writeText(text);
+    setCopiedFormat(format);
     toast({
       title: 'Copied!',
-      description: 'Citation copied to clipboard.',
+      description: `${format} citation copied to clipboard.`,
     });
+    setTimeout(() => setCopiedFormat(null), 2000);
   };
 
-  const generateCitation = () => {
-    if (!article) return '';
-    const authors = article.authors.map(a => a.name).join(', ');
+  const generateCitations = () => {
+    if (!article) return { apa: '', harvard: '', chicago: '', ieee: '' };
+    
+    const authors = article.authors.map(a => a.name);
     const year = new Date(article.published_at).getFullYear();
-    const journal = article.issues?.journals?.title || 'Journal';
+    const journalTitle = article.issues?.journals?.title || 'Journal';
     const volume = article.issues?.volume;
-    const issue = article.issues?.issue_number;
+    const issueNum = article.issues?.issue_number;
     const pages = article.pages || '';
-    return `${authors}. (${year}). ${article.title}. ${journal}, ${volume}(${issue}), ${pages}.`;
+    const doi = article.doi ? `https://doi.org/${article.doi}` : '';
+
+    // Format author names for different styles
+    const formatAuthorsAPA = () => {
+      return authors.map((name, i) => {
+        const parts = name.trim().split(' ');
+        if (parts.length >= 2) {
+          const lastName = parts[parts.length - 1];
+          const initials = parts.slice(0, -1).map(n => n[0] + '.').join(' ');
+          return `${lastName}, ${initials}`;
+        }
+        return name;
+      }).join(', ');
+    };
+
+    const formatAuthorsHarvard = () => {
+      if (authors.length === 1) return authors[0];
+      if (authors.length === 2) return `${authors[0]} and ${authors[1]}`;
+      return `${authors[0]} et al.`;
+    };
+
+    const formatAuthorsChicago = () => {
+      if (authors.length === 1) {
+        const parts = authors[0].trim().split(' ');
+        if (parts.length >= 2) {
+          const lastName = parts[parts.length - 1];
+          const firstName = parts.slice(0, -1).join(' ');
+          return `${lastName}, ${firstName}`;
+        }
+        return authors[0];
+      }
+      return authors.map((name, i) => {
+        const parts = name.trim().split(' ');
+        if (i === 0 && parts.length >= 2) {
+          const lastName = parts[parts.length - 1];
+          const firstName = parts.slice(0, -1).join(' ');
+          return `${lastName}, ${firstName}`;
+        }
+        return name;
+      }).join(', ');
+    };
+
+    const formatAuthorsIEEE = () => {
+      return authors.map(name => {
+        const parts = name.trim().split(' ');
+        if (parts.length >= 2) {
+          const lastName = parts[parts.length - 1];
+          const initials = parts.slice(0, -1).map(n => n[0] + '.').join(' ');
+          return `${initials} ${lastName}`;
+        }
+        return name;
+      }).join(', ');
+    };
+
+    // APA 7th Edition
+    const apa = `${formatAuthorsAPA()} (${year}). ${article.title}. ${journalTitle}, ${volume}(${issueNum})${pages ? `, ${pages}` : ''}.${doi ? ` ${doi}` : ''}`;
+
+    // Harvard
+    const harvard = `${formatAuthorsHarvard()} (${year}) '${article.title}', ${journalTitle}, ${volume}(${issueNum})${pages ? `, pp. ${pages}` : ''}.${doi ? ` Available at: ${doi}` : ''}`;
+
+    // Chicago 17th Edition
+    const chicago = `${formatAuthorsChicago()}. "${article.title}." ${journalTitle} ${volume}, no. ${issueNum} (${year})${pages ? `: ${pages}` : ''}.${doi ? ` ${doi}` : ''}`;
+
+    // IEEE
+    const ieee = `${formatAuthorsIEEE()}, "${article.title}," ${journalTitle}, vol. ${volume}, no. ${issueNum}${pages ? `, pp. ${pages}` : ''}, ${year}.${doi ? ` doi: ${article.doi}` : ''}`;
+
+    return { apa, harvard, chicago, ieee };
   };
+
+  const citations = generateCitations();
 
   if (isLoading) {
     return (
@@ -356,18 +430,74 @@ const ArticleDetail = () => {
             {/* How to Cite */}
             <div className="bg-card border border-border rounded-lg p-5">
               <h3 className="font-heading font-bold text-foreground mb-4">How to Cite</h3>
-              <div className="bg-muted/50 rounded p-3 text-sm text-muted-foreground mb-3">
-                {generateCitation()}
-              </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full"
-                onClick={() => copyToClipboard(generateCitation())}
-              >
-                <Copy className="w-4 h-4 mr-2" />
-                Copy Citation
-              </Button>
+              <Tabs defaultValue="apa" className="w-full">
+                <TabsList className="grid w-full grid-cols-4 mb-3">
+                  <TabsTrigger value="apa" className="text-xs">APA</TabsTrigger>
+                  <TabsTrigger value="harvard" className="text-xs">Harvard</TabsTrigger>
+                  <TabsTrigger value="chicago" className="text-xs">Chicago</TabsTrigger>
+                  <TabsTrigger value="ieee" className="text-xs">IEEE</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="apa" className="mt-0">
+                  <div className="bg-muted/50 rounded p-3 text-sm text-muted-foreground mb-3 min-h-[80px]">
+                    {citations.apa}
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => copyToClipboard(citations.apa, 'APA')}
+                  >
+                    {copiedFormat === 'APA' ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
+                    {copiedFormat === 'APA' ? 'Copied!' : 'Copy APA Citation'}
+                  </Button>
+                </TabsContent>
+                
+                <TabsContent value="harvard" className="mt-0">
+                  <div className="bg-muted/50 rounded p-3 text-sm text-muted-foreground mb-3 min-h-[80px]">
+                    {citations.harvard}
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => copyToClipboard(citations.harvard, 'Harvard')}
+                  >
+                    {copiedFormat === 'Harvard' ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
+                    {copiedFormat === 'Harvard' ? 'Copied!' : 'Copy Harvard Citation'}
+                  </Button>
+                </TabsContent>
+                
+                <TabsContent value="chicago" className="mt-0">
+                  <div className="bg-muted/50 rounded p-3 text-sm text-muted-foreground mb-3 min-h-[80px]">
+                    {citations.chicago}
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => copyToClipboard(citations.chicago, 'Chicago')}
+                  >
+                    {copiedFormat === 'Chicago' ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
+                    {copiedFormat === 'Chicago' ? 'Copied!' : 'Copy Chicago Citation'}
+                  </Button>
+                </TabsContent>
+                
+                <TabsContent value="ieee" className="mt-0">
+                  <div className="bg-muted/50 rounded p-3 text-sm text-muted-foreground mb-3 min-h-[80px]">
+                    {citations.ieee}
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => copyToClipboard(citations.ieee, 'IEEE')}
+                  >
+                    {copiedFormat === 'IEEE' ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
+                    {copiedFormat === 'IEEE' ? 'Copied!' : 'Copy IEEE Citation'}
+                  </Button>
+                </TabsContent>
+              </Tabs>
             </div>
 
             {/* License */}
