@@ -323,9 +323,9 @@ const ArticleDetail = () => {
                     <Skeleton className="h-6 w-48 mb-3" />
                     <Skeleton className="h-64 w-full" />
                   </div>
-                ) : pdfUrl ? (
+                ) : pdfBlobUrl ? (
                   <iframe
-                    src={pdfUrl}
+                    src={pdfBlobUrl}
                     className="w-full h-[600px]"
                     title="PDF Viewer"
                   />
