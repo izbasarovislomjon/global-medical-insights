@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom';
 import { Menu, X, Search, User, LogIn, LogOut, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
+import SearchDialog from './SearchDialog';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { user, isAdmin, signOut } = useAuth();
 
   return (
@@ -69,7 +71,12 @@ const Header = () => {
           </nav>
 
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
+              onClick={() => setIsSearchOpen(true)}
+            >
               <Search className="w-5 h-5" />
             </Button>
             <Button variant="ghost" size="icon" className="lg:hidden text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10" onClick={() => setIsMenuOpen(!isMenuOpen)}>
@@ -86,6 +93,8 @@ const Header = () => {
           </nav>
         )}
       </div>
+
+      <SearchDialog open={isSearchOpen} onOpenChange={setIsSearchOpen} />
     </header>
   );
 };
