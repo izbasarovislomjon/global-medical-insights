@@ -1,4 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 import { useJournal, useJournalIssues, useIssueArticles } from '@/hooks/useJournals';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -13,6 +15,30 @@ import {
 // Component to display articles for an issue
 const IssueArticlesList = ({ issueId, journalSlug }: { issueId: string; journalSlug: string }) => {
   const { data: articles, isLoading } = useIssueArticles(issueId);
+
+  const openPdf = async (articleId: string) => {
+    // Open immediately to avoid popup blockers
+    const newTab = window.open('', '_blank');
+
+    const { data, error } = await supabase.functions.invoke('article-pdf', {
+      body: { articleId },
+    });
+
+    const url = (data as any)?.url as string | undefined;
+
+    if (error || !url) {
+      newTab?.close();
+      toast({
+        title: 'PDF ochilmadi',
+        description: (error as any)?.message ?? 'PDF link yaratib bo\'lmadi.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (newTab) newTab.location.href = url;
+    else window.location.assign(url);
+  };
 
   if (isLoading) {
     return (
@@ -31,36 +57,40 @@ const IssueArticlesList = ({ issueId, journalSlug }: { issueId: string; journalS
     <div className="divide-y divide-border">
       {articles.map((article) => (
         <div key={article.id} className="py-4 first:pt-0 last:pb-0">
-          <Link 
-            to={`/journal/${journalSlug}/article/${article.id}`}
-            className="font-medium text-foreground hover:text-primary transition-colors block mb-1"
-          >
-            {article.title}
-          </Link>
-          <p className="text-sm text-muted-foreground">
-            {(article.authors as { name: string }[]).map(a => a.name).join(', ')}
-          </p>
-          <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-            {article.pages && <span>Pages: {article.pages}</span>}
-            <span className="flex items-center gap-1">
-              <Eye className="w-3 h-3" />
-              {article.views}
-            </span>
-            <span className="flex items-center gap-1">
-              <Download className="w-3 h-3" />
-              {article.downloads}
-            </span>
-            {article.pdf_url && (
-              <a 
-                href={article.pdf_url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 text-primary hover:underline"
-                onClick={(e) => e.stopPropagation()}
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <Link 
+                to={`/journal/${journalSlug}/article/${article.id}`}
+                className="font-medium text-foreground hover:text-primary transition-colors block mb-1"
               >
-                <FileDown className="w-3 h-3" />
+                {article.title}
+              </Link>
+              <p className="text-sm text-muted-foreground">
+                {(article.authors as { name: string }[]).map(a => a.name).join(', ')}
+              </p>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2 text-sm text-muted-foreground">
+                {article.pages && <span>Pages: {article.pages}</span>}
+                <span className="flex items-center gap-1">
+                  <Eye className="w-3 h-3" />
+                  {article.views}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Download className="w-3 h-3" />
+                  {article.downloads}
+                </span>
+              </div>
+            </div>
+
+            {article.pdf_url && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => openPdf(article.id)}
+                className="flex-shrink-0"
+              >
+                <FileDown className="w-4 h-4 mr-2" />
                 PDF
-              </a>
+              </Button>
             )}
           </div>
         </div>
