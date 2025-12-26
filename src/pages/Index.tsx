@@ -8,42 +8,42 @@ const journals = [
   {
     title: 'Web of Medicine',
     subtitle: 'Journal of Medicine, Practice and Nursing',
-    description: 'Tibbiyot, amaliy tibbiyot va hamshiralik bo\'yicha xalqaro ochiq kirishli jurnal. Jurnal tibbiyot informatikasi, sog\'liqni saqlash tizimlarini baholash, klinik qarorlar qabul qilish va tibbiy ta\'lim sohasidagi tadqiqotlarni nashr etadi.',
+    description: 'An international open access journal in medicine, medical practice and nursing. The journal publishes research in medical informatics, healthcare systems evaluation, clinical decision making, and medical education.',
     issn: '2938-3765',
     impactFactor: '7.555',
-    frequency: 'Oylik (12 son/yil)',
+    frequency: 'Monthly (12 issues/year)',
   },
   {
     title: 'Web of Scientists and Scholars',
     subtitle: 'Journal of Multidisciplinary Research',
-    description: 'Ko\'p tarmoqli tadqiqotlar bo\'yicha ochiq kirishli peer-reviewed xalqaro jurnal. Fizika, biologiya, kimyo, muhandislik, texnologiya va oziq-ovqat fanlari sohasidagi original tadqiqotlarni nashr etadi.',
+    description: 'An open access peer-reviewed international journal in multidisciplinary research. Publishes original research in physics, biology, chemistry, engineering, technology and food sciences.',
     issn: '2938-3811',
     impactFactor: '7.995',
-    frequency: 'Oylik (12 son/yil)',
+    frequency: 'Monthly (12 issues/year)',
   },
   {
     title: 'Web of Education',
     subtitle: 'Journal of Educational Sciences',
-    description: 'Ta\'lim fanlari bo\'yicha xalqaro jurnal. Pedagogika, ta\'lim metodikasi, zamonaviy ta\'lim texnologiyalari va ta\'lim boshqaruvi bo\'yicha tadqiqotlarni nashr etadi.',
+    description: 'An international journal in educational sciences. Publishes research in pedagogy, teaching methodology, modern educational technologies and educational management.',
     issn: '2938-3828',
     impactFactor: '6.875',
-    frequency: 'Oylik (12 son/yil)',
+    frequency: 'Monthly (12 issues/year)',
   },
   {
     title: 'Web of Technology',
     subtitle: 'Journal of Engineering and Innovation',
-    description: 'Muhandislik va innovatsiyalar bo\'yicha xalqaro jurnal. Axborot texnologiyalari, sun\'iy intellekt, robototexnika va zamonaviy texnologik yechimlar bo\'yicha tadqiqotlarni nashr etadi.',
+    description: 'An international journal in engineering and innovation. Publishes research in information technology, artificial intelligence, robotics and modern technological solutions.',
     issn: '2938-3835',
     impactFactor: '8.125',
-    frequency: 'Oylik (12 son/yil)',
+    frequency: 'Monthly (12 issues/year)',
   },
   {
     title: 'Web of Economics',
     subtitle: 'Journal of Business and Finance',
-    description: 'Iqtisodiyot va moliya fanlari bo\'yicha xalqaro jurnal. Makroiqtisodiyot, mikroiqtisodiyot, moliya bozorlari va biznes boshqaruvi sohasidagi tadqiqotlarni nashr etadi.',
+    description: 'An international journal in economics and finance. Publishes research in macroeconomics, microeconomics, financial markets and business management.',
     issn: '2938-3842',
     impactFactor: '7.250',
-    frequency: 'Oylik (12 son/yil)',
+    frequency: 'Monthly (12 issues/year)',
   },
 ];
 
@@ -59,10 +59,10 @@ const Index = () => {
           <div className="flex-1">
             <div className="mb-8">
               <h2 id="journals" className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-2">
-                Bizning jurnallar
+                Our Journals
               </h2>
               <p className="text-muted-foreground">
-                Barcha jurnallarimiz ochiq kirishli va peer-reviewed standartlariga javob beradi
+                All our journals are open access and meet peer-reviewed standards
               </p>
             </div>
 

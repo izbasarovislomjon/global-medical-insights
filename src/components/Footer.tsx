@@ -14,38 +14,38 @@ const Footer = () => {
               <span className="font-heading font-bold">IJAMR</span>
             </div>
             <p className="text-background/70 text-sm leading-relaxed">
-              International Journal of Applied Medical Research - xalqaro ilmiy jurnallar platformasi. 
-              Sifatli tadqiqotlarni nashr etish va olimlar hamjamiyatini birlashtirish.
+              International Journal of Applied Medical Research - an international scientific journals platform. 
+              Publishing quality research and uniting the scholarly community.
             </p>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h4 className="font-heading font-bold mb-4">Tezkor havolalar</h4>
+            <h4 className="font-heading font-bold mb-4">Quick Links</h4>
             <ul className="space-y-2 text-sm">
               <li>
                 <a href="#" className="text-background/70 hover:text-background transition-colors">
-                  Biz haqimizda
+                  About Us
                 </a>
               </li>
               <li>
                 <a href="#" className="text-background/70 hover:text-background transition-colors">
-                  Tahrir hay'ati
+                  Editorial Board
                 </a>
               </li>
               <li>
                 <a href="#" className="text-background/70 hover:text-background transition-colors">
-                  Nashr etish siyosati
+                  Publication Policy
                 </a>
               </li>
               <li>
                 <a href="#" className="text-background/70 hover:text-background transition-colors">
-                  Ochiq kirish
+                  Open Access
                 </a>
               </li>
               <li>
                 <a href="#" className="text-background/70 hover:text-background transition-colors">
-                  Etika qoidalari
+                  Ethics Guidelines
                 </a>
               </li>
             </ul>
@@ -53,31 +53,31 @@ const Footer = () => {
 
           {/* For Authors */}
           <div>
-            <h4 className="font-heading font-bold mb-4">Mualliflar uchun</h4>
+            <h4 className="font-heading font-bold mb-4">For Authors</h4>
             <ul className="space-y-2 text-sm">
               <li>
                 <a href="#" className="text-background/70 hover:text-background transition-colors">
-                  Maqola yuborish
+                  Submit Article
                 </a>
               </li>
               <li>
                 <a href="#" className="text-background/70 hover:text-background transition-colors">
-                  Yozish qoidalari
+                  Author Guidelines
                 </a>
               </li>
               <li>
                 <a href="#" className="text-background/70 hover:text-background transition-colors">
-                  Taqriz jarayoni
+                  Review Process
                 </a>
               </li>
               <li>
                 <a href="#" className="text-background/70 hover:text-background transition-colors">
-                  Nashr to'lovlari
+                  Publication Fees
                 </a>
               </li>
               <li>
                 <a href="#" className="text-background/70 hover:text-background transition-colors flex items-center gap-1">
-                  <span>Maqola holati</span>
+                  <span>Article Status</span>
                   <ExternalLink className="w-3 h-3" />
                 </a>
               </li>
@@ -86,24 +86,24 @@ const Footer = () => {
 
           {/* Contact */}
           <div>
-            <h4 className="font-heading font-bold mb-4">Bog'lanish</h4>
+            <h4 className="font-heading font-bold mb-4">Contact</h4>
             <ul className="space-y-3 text-sm">
               <li className="flex items-start gap-3">
                 <MapPin className="w-4 h-4 mt-0.5 text-background/50" />
                 <span className="text-background/70">
-                  Toshkent shahri, O'zbekiston, 100000
+                  123 Research Avenue, New York, NY 10001, USA
                 </span>
               </li>
               <li className="flex items-center gap-3">
                 <Phone className="w-4 h-4 text-background/50" />
-                <a href="tel:+998901234567" className="text-background/70 hover:text-background transition-colors">
-                  +998 90 123 45 67
+                <a href="tel:+12345678901" className="text-background/70 hover:text-background transition-colors">
+                  +1 (234) 567-8901
                 </a>
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="w-4 h-4 text-background/50" />
-                <a href="mailto:info@ijamr.uz" className="text-background/70 hover:text-background transition-colors">
-                  info@ijamr.uz
+                <a href="mailto:info@ijamr.com" className="text-background/70 hover:text-background transition-colors">
+                  info@ijamr.com
                 </a>
               </li>
             </ul>
@@ -113,14 +113,14 @@ const Footer = () => {
         {/* Bottom bar */}
         <div className="border-t border-background/10 mt-10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-background/50 text-sm">
-            © 2024 International Journal of Applied Medical Research. Barcha huquqlar himoyalangan.
+            © 2024 International Journal of Applied Medical Research. All rights reserved.
           </p>
           <div className="flex items-center gap-6 text-sm">
             <a href="#" className="text-background/50 hover:text-background transition-colors">
-              Maxfiylik siyosati
+              Privacy Policy
             </a>
             <a href="#" className="text-background/50 hover:text-background transition-colors">
-              Foydalanish shartlari
+              Terms of Use
             </a>
           </div>
         </div>
