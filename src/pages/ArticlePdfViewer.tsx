@@ -122,6 +122,7 @@ const ArticlePdfViewer = () => {
           // Ignore if function doesn't exist / blocked by policies
         }
       }
+    } catch {
       toast({
         title: 'Download failed',
         description: 'Error downloading PDF.',
