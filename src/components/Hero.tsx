@@ -1,10 +1,11 @@
 import { ArrowRight, BookOpen, Users, Award, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const Hero = () => {
   const stats = [
-    { icon: BookOpen, value: "12+", label: "Journals" },
-    { icon: Users, value: "1500+", label: "Authors" },
+    { icon: BookOpen, value: "5", label: "Journals" },
+    { icon: Users, value: "700+", label: "Authors" },
     { icon: Award, value: "7.5", label: "Avg. IF" },
     { icon: Globe, value: "78", label: "Countries" },
   ];
@@ -43,12 +44,14 @@ const Hero = () => {
             className="flex flex-wrap justify-center gap-4 mb-12 animate-fade-in"
             style={{ animationDelay: "300ms" }}
           >
-            <Button className="btn-primary-journal gap-2 text-base px-6 py-3 h-auto">
-              Submit Article
-              <ArrowRight className="w-5 h-5" />
+            <Button asChild className="btn-primary-journal gap-2 text-base px-6 py-3 h-auto">
+              <Link to="/submit">
+                Submit Article
+                <ArrowRight className="w-5 h-5" />
+              </Link>
             </Button>
-            <Button variant="outline" className="btn-outline-journal text-base px-6 py-3 h-auto">
-              Browse Journals
+            <Button asChild variant="outline" className="btn-outline-journal text-base px-6 py-3 h-auto">
+              <Link to="/#journals">Browse Journals</Link>
             </Button>
           </div>
 
