@@ -2,8 +2,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Download, FileText } from 'lucide-react';
+import { ArrowLeft, Download, FileText, ExternalLink } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
 
@@ -48,6 +47,7 @@ const ArticlePdfViewer = () => {
   const { data: article, isLoading } = useArticle(articleId || '');
   const [pdfSignedUrl, setPdfSignedUrl] = useState<string | null>(null);
   const [pdfLoading, setPdfLoading] = useState(true);
+  const [viewIncremented, setViewIncremented] = useState(false);
 
   useEffect(() => {
     const fetchPdfUrl = async () => {
@@ -61,8 +61,8 @@ const ArticlePdfViewer = () => {
       const url = (data as any)?.url as string | undefined;
       if (error || !url) {
         toast({
-          title: 'PDF ochilmadi',
-          description: (error as any)?.message ?? 'PDF link yaratib bo\'lmadi.',
+          title: 'PDF could not be loaded',
+          description: (error as any)?.message ?? 'Failed to create PDF link.',
           variant: 'destructive',
         });
         setPdfLoading(false);
@@ -75,6 +75,23 @@ const ArticlePdfViewer = () => {
 
     fetchPdfUrl();
   }, [articleId]);
+
+  // Increment view count once when PDF is loaded
+  useEffect(() => {
+    if (pdfSignedUrl && articleId && !viewIncremented) {
+      supabase
+        .from('articles')
+        .update({ views: supabase.rpc ? undefined : undefined })
+        .eq('id', articleId)
+        .then(() => {});
+      
+      // Use raw SQL increment via RPC or direct update
+      supabase.rpc('increment_article_views', { article_id: articleId }).catch(() => {
+        // Fallback: ignore if function doesn't exist
+      });
+      setViewIncremented(true);
+    }
+  }, [pdfSignedUrl, articleId, viewIncremented]);
 
   const handleDownload = async () => {
     if (!pdfSignedUrl) return;
@@ -95,12 +112,23 @@ const ArticlePdfViewer = () => {
       a.click();
       a.remove();
       URL.revokeObjectURL(blobUrl);
+
+      // Increment download count
+      if (articleId) {
+        supabase.rpc('increment_article_downloads', { article_id: articleId }).catch(() => {});
+      }
     } catch (e) {
       toast({
-        title: 'Yuklab bo\'lmadi',
-        description: 'PDF yuklab olishda xatolik.',
+        title: 'Download failed',
+        description: 'Error downloading PDF.',
         variant: 'destructive',
       });
+    }
+  };
+
+  const openInNewTab = () => {
+    if (pdfSignedUrl) {
+      window.open(pdfSignedUrl, '_blank');
     }
   };
 
@@ -108,14 +136,14 @@ const ArticlePdfViewer = () => {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <div className="bg-card border-b border-border px-4 py-3 flex items-center justify-between">
-          <Skeleton className="h-8 w-32" />
-          <Skeleton className="h-6 w-64" />
-          <Skeleton className="h-8 w-24" />
+          <div className="h-8 w-32 bg-muted animate-pulse rounded" />
+          <div className="h-6 w-64 bg-muted animate-pulse rounded hidden sm:block" />
+          <div className="h-8 w-24 bg-muted animate-pulse rounded" />
         </div>
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">PDF yuklanmoqda...</p>
+            <p className="text-muted-foreground">Loading PDF...</p>
           </div>
         </div>
       </div>
@@ -126,17 +154,20 @@ const ArticlePdfViewer = () => {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center">
         <FileText className="w-16 h-16 text-muted-foreground mb-4" />
-        <h1 className="font-heading text-2xl font-bold text-foreground mb-2">PDF topilmadi</h1>
-        <p className="text-muted-foreground mb-6">Bu maqola uchun PDF mavjud emas.</p>
+        <h1 className="font-heading text-2xl font-bold text-foreground mb-2">PDF Not Found</h1>
+        <p className="text-muted-foreground mb-6">PDF is not available for this article.</p>
         <Link to={`/journal/${slug}/article/${articleId}`}>
           <Button>
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Maqolaga qaytish
+            Return to Article
           </Button>
         </Link>
       </div>
     );
   }
+
+  // Use Google Docs viewer for reliable PDF embedding
+  const googleViewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(pdfSignedUrl)}&embedded=true`;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -145,7 +176,7 @@ const ArticlePdfViewer = () => {
         <Link to={`/journal/${slug}/article/${articleId}`}>
           <Button variant="ghost" size="sm">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Maqolaga qaytish
+            Return to Article
           </Button>
         </Link>
         
@@ -153,18 +184,24 @@ const ArticlePdfViewer = () => {
           {article.title}
         </h1>
         
-        <Button variant="outline" size="sm" onClick={handleDownload}>
-          <Download className="w-4 h-4 mr-2" />
-          Yuklab olish
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={openInNewTab} title="Open in new tab">
+            <ExternalLink className="w-4 h-4" />
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleDownload}>
+            <Download className="w-4 h-4 mr-2" />
+            Download
+          </Button>
+        </div>
       </div>
 
-      {/* Full-screen PDF Viewer */}
+      {/* Full-screen PDF Viewer using Google Docs Viewer */}
       <div className="flex-1">
         <iframe
-          src={pdfSignedUrl}
+          src={googleViewerUrl}
           className="w-full h-full border-0"
           title="PDF Viewer"
+          allowFullScreen
         />
       </div>
     </div>
