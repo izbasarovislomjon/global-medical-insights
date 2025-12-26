@@ -147,9 +147,9 @@ const ArticleDetail = () => {
   };
 
   const handleReadOnline = async () => {
-    const blobUrl = await ensurePdfBlobUrl();
-    if (!blobUrl) return;
+    // Fast: only fetch a signed URL (do NOT download the whole PDF first)
     setShowPdfViewer(true);
+    await getSignedPdfUrl();
   };
 
   const handleDownload = async () => {
@@ -323,15 +323,15 @@ const ArticleDetail = () => {
                     <Skeleton className="h-6 w-48 mb-3" />
                     <Skeleton className="h-64 w-full" />
                   </div>
-                ) : pdfBlobUrl ? (
+                ) : pdfSignedUrl ? (
                   <iframe
-                    src={pdfBlobUrl}
+                    src={pdfSignedUrl}
                     className="w-full h-[600px]"
                     title="PDF Viewer"
                   />
                 ) : (
                   <div className="p-6 text-sm text-muted-foreground">
-                    PDF link topilmadi.
+                    PDF yuklanmoqda...
                   </div>
                 )}
               </div>
