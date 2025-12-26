@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useJournal, useJournalIssues, useIssueArticles } from '@/hooks/useJournals';
 import Header from '@/components/Header';
@@ -5,6 +6,12 @@ import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { 
   BookOpen, Calendar, Award, Users, FileText, 
   Download, Eye, ArrowRight, FileDown
@@ -83,6 +90,110 @@ const JournalDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const { data: journal, isLoading: journalLoading } = useJournal(slug || '');
   const { data: issues, isLoading: issuesLoading } = useJournalIssues(journal?.id || '');
+  const [openDialog, setOpenDialog] = useState<'guidelines' | 'ethics' | 'review' | null>(null);
+
+  const dialogContent = {
+    guidelines: {
+      title: 'Author Guidelines',
+      content: (
+        <div className="space-y-4 text-sm text-muted-foreground">
+          <section>
+            <h4 className="font-semibold text-foreground mb-2">Manuscript Preparation</h4>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>Manuscripts should be written in English with clear and concise language.</li>
+              <li>Use Microsoft Word (.doc, .docx) format for submission.</li>
+              <li>The manuscript should include: Title, Abstract, Keywords, Introduction, Methods, Results, Discussion, Conclusion, and References.</li>
+              <li>Abstract should not exceed 300 words.</li>
+              <li>Include 4-6 keywords for indexing purposes.</li>
+            </ul>
+          </section>
+          <section>
+            <h4 className="font-semibold text-foreground mb-2">Formatting Requirements</h4>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>Use Times New Roman, 12-point font, double-spaced.</li>
+              <li>Margins should be 2.5 cm on all sides.</li>
+              <li>Number all pages consecutively.</li>
+              <li>Figures and tables should be placed at the end of the manuscript.</li>
+            </ul>
+          </section>
+          <section>
+            <h4 className="font-semibold text-foreground mb-2">References</h4>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>Follow APA (7th edition) citation style.</li>
+              <li>Include DOI for all references where available.</li>
+              <li>Ensure all cited works are listed in the reference section.</li>
+            </ul>
+          </section>
+        </div>
+      ),
+    },
+    ethics: {
+      title: 'Publication Ethics',
+      content: (
+        <div className="space-y-4 text-sm text-muted-foreground">
+          <section>
+            <h4 className="font-semibold text-foreground mb-2">Authorship</h4>
+            <p>All listed authors must have made significant contributions to the research. Ghost authorship and gift authorship are not permitted. All authors must approve the final version of the manuscript.</p>
+          </section>
+          <section>
+            <h4 className="font-semibold text-foreground mb-2">Originality & Plagiarism</h4>
+            <p>Authors must ensure their work is entirely original. All manuscripts are screened for plagiarism using industry-standard software. Plagiarism in any form is unacceptable and will result in immediate rejection.</p>
+          </section>
+          <section>
+            <h4 className="font-semibold text-foreground mb-2">Conflict of Interest</h4>
+            <p>Authors must disclose any financial or personal relationships that could influence their research. Funding sources must be acknowledged in the manuscript.</p>
+          </section>
+          <section>
+            <h4 className="font-semibold text-foreground mb-2">Data Integrity</h4>
+            <p>Authors are responsible for the accuracy of their data. Fabrication, falsification, or inappropriate data manipulation is strictly prohibited.</p>
+          </section>
+          <section>
+            <h4 className="font-semibold text-foreground mb-2">Ethical Approval</h4>
+            <p>Research involving human subjects or animals must have appropriate ethical approval from relevant institutional review boards.</p>
+          </section>
+        </div>
+      ),
+    },
+    review: {
+      title: 'Peer Review Process',
+      content: (
+        <div className="space-y-4 text-sm text-muted-foreground">
+          <section>
+            <h4 className="font-semibold text-foreground mb-2">Double-Blind Review</h4>
+            <p>Our journal employs a double-blind peer review process. Both the reviewers and authors remain anonymous throughout the review process to ensure impartiality.</p>
+          </section>
+          <section>
+            <h4 className="font-semibold text-foreground mb-2">Review Timeline</h4>
+            <ul className="list-disc pl-5 space-y-1">
+              <li><strong>Initial Screening:</strong> 3-5 business days</li>
+              <li><strong>Peer Review:</strong> 2-4 weeks</li>
+              <li><strong>Editorial Decision:</strong> 1 week after reviews received</li>
+              <li><strong>Revision Period:</strong> 2 weeks (if required)</li>
+            </ul>
+          </section>
+          <section>
+            <h4 className="font-semibold text-foreground mb-2">Review Criteria</h4>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>Originality and significance of the research</li>
+              <li>Clarity and quality of writing</li>
+              <li>Appropriateness of methodology</li>
+              <li>Validity of conclusions</li>
+              <li>Relevance to the journal scope</li>
+            </ul>
+          </section>
+          <section>
+            <h4 className="font-semibold text-foreground mb-2">Possible Outcomes</h4>
+            <ul className="list-disc pl-5 space-y-1">
+              <li><strong>Accept:</strong> Manuscript accepted without changes</li>
+              <li><strong>Minor Revision:</strong> Small changes required</li>
+              <li><strong>Major Revision:</strong> Significant changes needed</li>
+              <li><strong>Reject:</strong> Manuscript not suitable for publication</li>
+            </ul>
+          </section>
+        </div>
+      ),
+    },
+  };
 
   if (journalLoading) {
     return (
@@ -293,28 +404,49 @@ const JournalDetail = () => {
               <h3 className="font-heading font-bold text-foreground mb-4">For Authors</h3>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <a href="#" className="text-primary hover:underline flex items-center gap-2">
+                  <button 
+                    onClick={() => setOpenDialog('guidelines')}
+                    className="text-primary hover:underline flex items-center gap-2 w-full text-left"
+                  >
                     <FileText className="w-4 h-4" />
                     Author Guidelines
-                  </a>
+                  </button>
                 </li>
                 <li>
-                  <a href="#" className="text-primary hover:underline flex items-center gap-2">
+                  <button 
+                    onClick={() => setOpenDialog('ethics')}
+                    className="text-primary hover:underline flex items-center gap-2 w-full text-left"
+                  >
                     <FileText className="w-4 h-4" />
                     Publication Ethics
-                  </a>
+                  </button>
                 </li>
                 <li>
-                  <a href="#" className="text-primary hover:underline flex items-center gap-2">
+                  <button 
+                    onClick={() => setOpenDialog('review')}
+                    className="text-primary hover:underline flex items-center gap-2 w-full text-left"
+                  >
                     <FileText className="w-4 h-4" />
                     Peer Review Process
-                  </a>
+                  </button>
                 </li>
               </ul>
             </div>
           </div>
         </div>
       </main>
+
+      {/* Dialog for Author Info */}
+      <Dialog open={openDialog !== null} onOpenChange={() => setOpenDialog(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-heading text-xl">
+              {openDialog && dialogContent[openDialog].title}
+            </DialogTitle>
+          </DialogHeader>
+          {openDialog && dialogContent[openDialog].content}
+        </DialogContent>
+      </Dialog>
 
       <Footer />
     </div>
