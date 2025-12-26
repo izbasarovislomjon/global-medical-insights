@@ -11,20 +11,16 @@ const Header = () => {
       <div className="border-b border-primary-foreground/10">
         <div className="container mx-auto px-4 py-2 flex justify-between items-center text-sm">
           <div className="hidden md:flex items-center gap-4">
-            <a href="#" className="nav-link">English</a>
-            <span className="text-primary-foreground/30">|</span>
-            <a href="#" className="nav-link">O'zbek</a>
-            <span className="text-primary-foreground/30">|</span>
-            <a href="#" className="nav-link">Русский</a>
+            <span className="text-primary-foreground/70">Welcome to IJAMR</span>
           </div>
           <div className="flex items-center gap-4 ml-auto">
             <a href="#" className="nav-link flex items-center gap-1.5">
               <LogIn className="w-4 h-4" />
-              <span>Kirish</span>
+              <span>Login</span>
             </a>
             <a href="#" className="nav-link flex items-center gap-1.5">
               <User className="w-4 h-4" />
-              <span>Ro'yxatdan o'tish</span>
+              <span>Register</span>
             </a>
           </div>
         </div>
@@ -50,11 +46,11 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-8">
-            <a href="#" className="nav-link">Bosh sahifa</a>
-            <a href="#journals" className="nav-link">Jurnallar</a>
-            <a href="#about" className="nav-link">Biz haqimizda</a>
-            <a href="#submit" className="nav-link">Maqola yuborish</a>
-            <a href="#contact" className="nav-link">Aloqa</a>
+            <a href="#" className="nav-link">Home</a>
+            <a href="#journals" className="nav-link">Journals</a>
+            <a href="#about" className="nav-link">About Us</a>
+            <a href="#submit" className="nav-link">Submit Article</a>
+            <a href="#contact" className="nav-link">Contact</a>
           </nav>
 
           {/* Search & Mobile Menu */}
@@ -80,11 +76,11 @@ const Header = () => {
         {/* Mobile Navigation */}
         {isMenuOpen && (
           <nav className="lg:hidden mt-4 pb-4 border-t border-primary-foreground/10 pt-4 space-y-3">
-            <a href="#" className="block nav-link py-2">Bosh sahifa</a>
-            <a href="#journals" className="block nav-link py-2">Jurnallar</a>
-            <a href="#about" className="block nav-link py-2">Biz haqimizda</a>
-            <a href="#submit" className="block nav-link py-2">Maqola yuborish</a>
-            <a href="#contact" className="block nav-link py-2">Aloqa</a>
+            <a href="#" className="block nav-link py-2">Home</a>
+            <a href="#journals" className="block nav-link py-2">Journals</a>
+            <a href="#about" className="block nav-link py-2">About Us</a>
+            <a href="#submit" className="block nav-link py-2">Submit Article</a>
+            <a href="#contact" className="block nav-link py-2">Contact</a>
           </nav>
         )}
       </div>

@@ -66,10 +66,10 @@ const JournalCard = ({
 
             <div className="flex gap-2">
               <Button variant="outline" size="sm" className="text-primary border-primary hover:bg-primary hover:text-primary-foreground">
-                Joriy son
+                Current Issue
               </Button>
               <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 gap-1">
-                Jurnalni ko'rish
+                View Journal
                 <ArrowRight className="w-4 h-4" />
               </Button>
             </div>
