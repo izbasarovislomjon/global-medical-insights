@@ -11,7 +11,7 @@ import {
   ArrowLeft, Eye, Copy, ExternalLink, User
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface ArticleWithIssue {
   id: string;
@@ -74,10 +74,17 @@ const ArticleDetail = () => {
   const { articleId } = useParams<{ articleId: string }>();
   const { data: article, isLoading } = useArticle(articleId || '');
   const [showPdfViewer, setShowPdfViewer] = useState(false);
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [pdfSignedUrl, setPdfSignedUrl] = useState<string | null>(null);
+  const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
 
-  const getPdfUrl = async () => {
+  useEffect(() => {
+    return () => {
+      if (pdfBlobUrl) URL.revokeObjectURL(pdfBlobUrl);
+    };
+  }, [pdfBlobUrl]);
+
+  const getSignedPdfUrl = async () => {
     if (!articleId) return null;
     if (!article?.pdf_url) {
       toast({
@@ -88,7 +95,7 @@ const ArticleDetail = () => {
       return null;
     }
 
-    if (pdfUrl) return pdfUrl;
+    if (pdfSignedUrl) return pdfSignedUrl;
 
     setPdfLoading(true);
     const { data, error } = await supabase.functions.invoke('article-pdf', {
@@ -106,27 +113,58 @@ const ArticleDetail = () => {
       return null;
     }
 
-    setPdfUrl(url);
+    setPdfSignedUrl(url);
     return url;
   };
 
+  const ensurePdfBlobUrl = async () => {
+    if (pdfBlobUrl) return pdfBlobUrl;
+
+    const signedUrl = await getSignedPdfUrl();
+    if (!signedUrl) return null;
+
+    setPdfLoading(true);
+    try {
+      const resp = await fetch(signedUrl);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const blob = await resp.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      setPdfBlobUrl(blobUrl);
+      return blobUrl;
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Fetch failed';
+      toast({
+        title: 'PDF ochilmadi',
+        description: msg,
+        variant: 'destructive',
+      });
+      // Fallback: navigate directly to signed URL
+      window.location.assign(signedUrl);
+      return null;
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
   const handleReadOnline = async () => {
-    const url = await getPdfUrl();
-    if (!url) return;
+    const blobUrl = await ensurePdfBlobUrl();
+    if (!blobUrl) return;
     setShowPdfViewer(true);
   };
 
   const handleDownload = async () => {
-    // Open immediately to avoid popup blockers
-    const newTab = window.open('', '_blank');
-    const url = await getPdfUrl();
-    if (!url) {
-      newTab?.close();
-      return;
-    }
+    const blobUrl = await ensurePdfBlobUrl();
+    if (!blobUrl) return;
 
-    if (newTab) newTab.location.href = url;
-    else window.location.assign(url);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    const safeTitle = (article?.title || 'article')
+      .replace(/[^a-z0-9\-_]+/gi, '_')
+      .slice(0, 80);
+    a.download = `${safeTitle}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   };
 
   const copyToClipboard = (text: string) => {
