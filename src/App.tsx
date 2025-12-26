@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import JournalDetail from "./pages/JournalDetail";
+import ArticleDetail from "./pages/ArticleDetail";
 import Submit from "./pages/Submit";
 import MySubmissions from "./pages/MySubmissions";
 import Admin from "./pages/Admin";
@@ -25,6 +26,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/journal/:slug" element={<JournalDetail />} />
+            <Route path="/journal/:slug/article/:articleId" element={<ArticleDetail />} />
             <Route path="/submit" element={<Submit />} />
             <Route path="/my-submissions" element={<MySubmissions />} />
             <Route path="/admin" element={<Admin />} />
