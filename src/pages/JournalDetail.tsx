@@ -1,6 +1,4 @@
-import { useParams, Link } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useJournal, useJournalIssues, useIssueArticles } from '@/hooks/useJournals';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -15,25 +13,11 @@ import {
 // Component to display articles for an issue
 const IssueArticlesList = ({ issueId, journalSlug }: { issueId: string; journalSlug: string }) => {
   const { data: articles, isLoading } = useIssueArticles(issueId);
+  const navigate = useNavigate();
 
-  const openPdf = async (articleId: string) => {
-    const { data, error } = await supabase.functions.invoke('article-pdf', {
-      body: { articleId },
-    });
-
-    const url = (data as any)?.url as string | undefined;
-
-    if (error || !url) {
-      toast({
-        title: 'PDF ochilmadi',
-        description: (error as any)?.message ?? 'PDF link yaratib bo\'lmadi.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    // Navigate in the same tab (works reliably inside embedded previews too)
-    window.location.assign(url);
+  const openPdf = (articleId: string) => {
+    // Navigate to dedicated PDF viewer page
+    navigate(`/journal/${journalSlug}/article/${articleId}/pdf`);
   };
 
   if (isLoading) {
