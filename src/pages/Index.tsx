@@ -16,9 +16,9 @@ const Index = () => {
       
       <main className="container mx-auto px-4 py-12">
         <div className="flex flex-col lg:flex-row gap-8">
-          <div className="flex-1">
+          <div id="journals" className="flex-1">
             <div className="mb-8">
-              <h2 id="journals" className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-2">
+              <h2 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-2">
                 Our Journals
               </h2>
               <p className="text-muted-foreground">
