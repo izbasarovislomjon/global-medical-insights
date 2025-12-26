@@ -1,4 +1,4 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/Header';
@@ -11,7 +11,7 @@ import {
   ArrowLeft, Eye, Copy, ExternalLink, User
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 interface ArticleWithIssue {
   id: string;
@@ -71,37 +71,30 @@ const useArticle = (articleId: string) => {
 };
 
 const ArticleDetail = () => {
-  const { articleId } = useParams<{ articleId: string }>();
+  const { articleId, slug } = useParams<{ articleId: string; slug: string }>();
+  const navigate = useNavigate();
   const { data: article, isLoading } = useArticle(articleId || '');
-  const [showPdfViewer, setShowPdfViewer] = useState(false);
-  const [pdfSignedUrl, setPdfSignedUrl] = useState<string | null>(null);
-  const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
 
-  useEffect(() => {
-    return () => {
-      if (pdfBlobUrl) URL.revokeObjectURL(pdfBlobUrl);
-    };
-  }, [pdfBlobUrl]);
+  const handleReadOnline = () => {
+    // Navigate to dedicated PDF viewer page
+    navigate(`/journal/${slug}/article/${articleId}/pdf`);
+  };
 
-  const getSignedPdfUrl = async () => {
-    if (!articleId) return null;
-    if (!article?.pdf_url) {
+  const handleDownload = async () => {
+    if (!articleId || !article?.pdf_url) {
       toast({
         title: 'PDF mavjud emas',
         description: 'Bu maqola uchun PDF yuklanmagan.',
         variant: 'destructive',
       });
-      return null;
+      return;
     }
-
-    if (pdfSignedUrl) return pdfSignedUrl;
 
     setPdfLoading(true);
     const { data, error } = await supabase.functions.invoke('article-pdf', {
       body: { articleId },
     });
-    setPdfLoading(false);
 
     const url = (data as any)?.url as string | undefined;
     if (error || !url) {
@@ -110,61 +103,35 @@ const ArticleDetail = () => {
         description: (error as any)?.message ?? 'PDF link yaratib bo\'lmadi.',
         variant: 'destructive',
       });
-      return null;
+      setPdfLoading(false);
+      return;
     }
 
-    setPdfSignedUrl(url);
-    return url;
-  };
-
-  const ensurePdfBlobUrl = async () => {
-    if (pdfBlobUrl) return pdfBlobUrl;
-
-    const signedUrl = await getSignedPdfUrl();
-    if (!signedUrl) return null;
-
-    setPdfLoading(true);
     try {
-      const resp = await fetch(signedUrl);
+      const resp = await fetch(url);
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const blob = await resp.blob();
       const blobUrl = URL.createObjectURL(blob);
-      setPdfBlobUrl(blobUrl);
-      return blobUrl;
+
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      const safeTitle = (article?.title || 'article')
+        .replace(/[^a-z0-9\-_]+/gi, '_')
+        .slice(0, 80);
+      a.download = `${safeTitle}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(blobUrl);
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Fetch failed';
       toast({
-        title: 'PDF ochilmadi',
-        description: msg,
+        title: 'Yuklab bo\'lmadi',
+        description: 'PDF yuklab olishda xatolik.',
         variant: 'destructive',
       });
-      // Fallback: navigate directly to signed URL
-      window.location.assign(signedUrl);
-      return null;
     } finally {
       setPdfLoading(false);
     }
-  };
-
-  const handleReadOnline = async () => {
-    // Fast: only fetch a signed URL (do NOT download the whole PDF first)
-    setShowPdfViewer(true);
-    await getSignedPdfUrl();
-  };
-
-  const handleDownload = async () => {
-    const blobUrl = await ensurePdfBlobUrl();
-    if (!blobUrl) return;
-
-    const a = document.createElement('a');
-    a.href = blobUrl;
-    const safeTitle = (article?.title || 'article')
-      .replace(/[^a-z0-9\-_]+/gi, '_')
-      .slice(0, 80);
-    a.download = `${safeTitle}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
   };
 
   const copyToClipboard = (text: string) => {
@@ -305,35 +272,6 @@ const ArticleDetail = () => {
                 <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
                   {article.abstract}
                 </p>
-              </div>
-            )}
-
-            {/* PDF Viewer */}
-            {showPdfViewer && (
-              <div className="bg-card border border-border rounded-lg overflow-hidden">
-                <div className="flex items-center justify-between p-4 border-b border-border">
-                  <h2 className="font-semibold text-foreground">Full Text (PDF)</h2>
-                  <Button variant="ghost" size="sm" onClick={() => setShowPdfViewer(false)}>
-                    Close
-                  </Button>
-                </div>
-
-                {pdfLoading ? (
-                  <div className="p-6">
-                    <Skeleton className="h-6 w-48 mb-3" />
-                    <Skeleton className="h-64 w-full" />
-                  </div>
-                ) : pdfSignedUrl ? (
-                  <iframe
-                    src={pdfSignedUrl}
-                    className="w-full h-[600px]"
-                    title="PDF Viewer"
-                  />
-                ) : (
-                  <div className="p-6 text-sm text-muted-foreground">
-                    PDF yuklanmoqda...
-                  </div>
-                )}
               </div>
             )}
           </div>
