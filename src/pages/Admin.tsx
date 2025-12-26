@@ -212,8 +212,28 @@ const Admin = () => {
   };
 
   const getManuscriptUrl = async (path: string) => {
-    const { data } = await supabase.storage.from('manuscripts').createSignedUrl(path, 3600);
-    if (data?.signedUrl) window.open(data.signedUrl, '_blank');
+    // Open a tab immediately to avoid popup blockers (window.open after await is often blocked)
+    const newTab = window.open('', '_blank');
+
+    const { data, error } = await supabase.storage
+      .from('manuscripts')
+      .createSignedUrl(path, 60 * 10);
+
+    if (error || !data?.signedUrl) {
+      newTab?.close();
+      toast({
+        title: 'Download failed',
+        description: error?.message ?? 'Could not create a download link for this file.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (newTab) {
+      newTab.location.href = data.signedUrl;
+    } else {
+      window.location.assign(data.signedUrl);
+    }
   };
 
   const pendingCount = submissions?.filter(s => s.status === 'pending').length || 0;
