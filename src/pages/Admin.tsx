@@ -212,14 +212,16 @@ const Admin = () => {
   };
 
   const getManuscriptUrl = async (path: string) => {
-    // Open a tab immediately to avoid popup blockers (window.open after await is often blocked)
+    // Open a tab immediately to avoid popup blockers
     const newTab = window.open('', '_blank');
 
     const { data, error } = await supabase.storage
       .from('manuscripts')
       .createSignedUrl(path, 60 * 10);
 
-    if (error || !data?.signedUrl) {
+    const signed = (data as any)?.signedUrl ?? (data as any)?.signedURL;
+
+    if (error || !signed) {
       newTab?.close();
       toast({
         title: 'Download failed',
@@ -229,10 +231,15 @@ const Admin = () => {
       return;
     }
 
+    // Some responses provide a relative path like "/object/sign/..."; convert to absolute URL.
+    const url = typeof signed === 'string' && signed.startsWith('http')
+      ? signed
+      : `${import.meta.env.VITE_SUPABASE_URL}/storage/v1${signed}`;
+
     if (newTab) {
-      newTab.location.href = data.signedUrl;
+      newTab.location.href = url;
     } else {
-      window.location.assign(data.signedUrl);
+      window.location.assign(url);
     }
   };
 
