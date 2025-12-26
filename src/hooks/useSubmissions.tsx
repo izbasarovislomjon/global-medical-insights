@@ -43,9 +43,9 @@ export const useAllSubmissions = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('submissions')
-        .select(`*, journals (title, slug), profiles (full_name, email)`)
+        .select(`*, journals (title, slug)`)
         .order('submitted_at', { ascending: false });
-      
+
       if (error) throw error;
       return data;
     }

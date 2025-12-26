@@ -265,7 +265,7 @@ const Admin = () => {
                         <h3 className="font-semibold text-foreground mb-1 truncate">{sub.title}</h3>
                         <p className="text-sm text-muted-foreground line-clamp-2">{sub.abstract}</p>
                         <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                          <span><User className="w-4 h-4 inline mr-1" />{(sub as any).profiles?.full_name || (sub as any).profiles?.email}</span>
+                          <span><User className="w-4 h-4 inline mr-1" />{(sub as any).profiles?.full_name || (sub as any).profiles?.email || `${sub.user_id.slice(0, 8)}…`}</span>
                           <span><Calendar className="w-4 h-4 inline mr-1" />{new Date(sub.submitted_at).toLocaleDateString()}</span>
                         </div>
                       </div>

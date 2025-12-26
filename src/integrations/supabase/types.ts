@@ -249,6 +249,13 @@ export type Database = {
             referencedRelation: "journals"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "submissions_user_id_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       user_roles: {
