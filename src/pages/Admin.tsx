@@ -66,6 +66,8 @@ const Admin = () => {
   // Form states
   const [newStatus, setNewStatus] = useState('');
   const [editorNotes, setEditorNotes] = useState('');
+  const [publishPdfFile, setPublishPdfFile] = useState<File | null>(null);
+  const [uploadingPdf, setUploadingPdf] = useState(false);
 
   if (authLoading) {
     return <div className="min-h-screen bg-background flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>;
@@ -180,24 +182,44 @@ const Admin = () => {
     }
   };
 
-  const handlePublishSubmission = async (submission: any, issueId: string, pages: string) => {
+  const handlePublishSubmission = async (submission: any, issueId: string, pages: string, doi: string) => {
     try {
+      setUploadingPdf(true);
+      
+      let finalPdfUrl = submission.manuscript_url;
+      
+      // If admin uploaded a new PDF, use that instead
+      if (publishPdfFile) {
+        const fileExt = publishPdfFile.name.split('.').pop();
+        const fileName = `published/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('manuscripts')
+          .upload(fileName, publishPdfFile);
+        
+        if (uploadError) throw uploadError;
+        finalPdfUrl = fileName;
+      }
+      
       await createArticle.mutateAsync({
         issue_id: issueId,
         title: submission.title,
         abstract: submission.abstract,
         keywords: submission.keywords,
         authors: submission.authors,
-        pdf_url: submission.manuscript_url,
-        doi: null,
+        pdf_url: finalPdfUrl,
+        doi: doi || null,
         pages,
         published_at: new Date().toISOString()
       });
       await updateStatus.mutateAsync({ id: submission.id, status: 'published', editor_notes: 'Published to journal' });
       toast({ title: 'Article Published!' });
       setPublishDialog(null);
+      setPublishPdfFile(null);
     } catch (error: any) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } finally {
+      setUploadingPdf(false);
     }
   };
 
@@ -474,16 +496,22 @@ const Admin = () => {
       </Dialog>
 
       {/* Publish Dialog */}
-      <Dialog open={!!publishDialog} onOpenChange={() => setPublishDialog(null)}>
-        <DialogContent>
+      <Dialog open={!!publishDialog} onOpenChange={() => { setPublishDialog(null); setPublishPdfFile(null); }}>
+        <DialogContent className="max-w-lg">
           <DialogHeader><DialogTitle>Publish to Journal</DialogTitle></DialogHeader>
           {publishDialog && (
             <form onSubmit={(e) => {
               e.preventDefault();
               const formData = new FormData(e.currentTarget);
-              handlePublishSubmission(publishDialog, formData.get('issue_id') as string, formData.get('pages') as string);
+              handlePublishSubmission(
+                publishDialog, 
+                formData.get('issue_id') as string, 
+                formData.get('pages') as string,
+                formData.get('doi') as string
+              );
             }} className="space-y-4">
               <p className="text-sm text-muted-foreground">Publishing: <strong>{publishDialog.title}</strong></p>
+              
               <div className="space-y-2">
                 <Label>Select Issue *</Label>
                 <Select name="issue_id" required>
@@ -495,10 +523,33 @@ const Admin = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2"><Label>Pages</Label><Input name="pages" placeholder="e.g., 1-15" /></div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2"><Label>Pages</Label><Input name="pages" placeholder="e.g., 1-15" /></div>
+                <div className="space-y-2"><Label>DOI</Label><Input name="doi" placeholder="e.g., 10.1234/..." /></div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Upload Final PDF (Template-formatted)</Label>
+                <p className="text-xs text-muted-foreground">Download the original manuscript above, format it with your journal template, then upload the final version here.</p>
+                <Input 
+                  type="file" 
+                  accept=".pdf"
+                  onChange={(e) => setPublishPdfFile(e.target.files?.[0] || null)}
+                />
+                {publishPdfFile && (
+                  <p className="text-sm text-green-600">Selected: {publishPdfFile.name}</p>
+                )}
+                {!publishPdfFile && publishDialog.manuscript_url && (
+                  <p className="text-xs text-muted-foreground">If no file uploaded, original manuscript will be used.</p>
+                )}
+              </div>
+              
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setPublishDialog(null)}>Cancel</Button>
-                <Button type="submit">Publish Article</Button>
+                <Button type="button" variant="outline" onClick={() => { setPublishDialog(null); setPublishPdfFile(null); }}>Cancel</Button>
+                <Button type="submit" disabled={uploadingPdf}>
+                  {uploadingPdf ? 'Uploading...' : 'Publish Article'}
+                </Button>
               </DialogFooter>
             </form>
           )}
