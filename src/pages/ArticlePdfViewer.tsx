@@ -175,40 +175,46 @@ const ArticlePdfViewer = () => {
   const googleViewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(pdfSignedUrl)}&embedded=true`;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Header Bar */}
-      <div className="bg-card border-b border-border px-4 py-3 flex items-center justify-between gap-4 shrink-0">
+      <header className="bg-primary text-primary-foreground px-4 py-3 flex items-center justify-between gap-4 shrink-0 shadow-md">
         <Link to={`/journal/${slug}/article/${articleId}`}>
-          <Button variant="ghost" size="sm">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Return to Article
+          <Button variant="secondary" size="sm" className="gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">Back to Article</span>
           </Button>
         </Link>
         
-        <h1 className="text-sm font-medium text-foreground truncate flex-1 text-center hidden sm:block">
+        <h1 className="text-sm font-semibold truncate flex-1 text-center px-4 hidden md:block">
           {article.title}
         </h1>
         
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={openInNewTab} title="Open in new tab">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={openInNewTab} 
+            title="Open in new tab"
+            className="text-primary-foreground hover:bg-primary-foreground/10"
+          >
             <ExternalLink className="w-4 h-4" />
           </Button>
-          <Button variant="outline" size="sm" onClick={handleDownload}>
-            <Download className="w-4 h-4 mr-2" />
-            Download
+          <Button variant="secondary" size="sm" onClick={handleDownload} className="gap-2">
+            <Download className="w-4 h-4" />
+            <span className="hidden sm:inline">Download PDF</span>
           </Button>
         </div>
-      </div>
+      </header>
 
       {/* Full-screen PDF Viewer using Google Docs Viewer */}
-      <div className="flex-1">
+      <main className="flex-1 min-h-0">
         <iframe
           src={googleViewerUrl}
           className="w-full h-full border-0"
           title="PDF Viewer"
           allowFullScreen
         />
-      </div>
+      </main>
     </div>
   );
 };
