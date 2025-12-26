@@ -14,16 +14,276 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      articles: {
+        Row: {
+          abstract: string | null
+          authors: Json
+          created_at: string
+          doi: string | null
+          downloads: number | null
+          id: string
+          issue_id: string
+          keywords: string[] | null
+          pages: string | null
+          pdf_url: string | null
+          published_at: string
+          title: string
+          views: number | null
+        }
+        Insert: {
+          abstract?: string | null
+          authors?: Json
+          created_at?: string
+          doi?: string | null
+          downloads?: number | null
+          id?: string
+          issue_id: string
+          keywords?: string[] | null
+          pages?: string | null
+          pdf_url?: string | null
+          published_at?: string
+          title: string
+          views?: number | null
+        }
+        Update: {
+          abstract?: string | null
+          authors?: Json
+          created_at?: string
+          doi?: string | null
+          downloads?: number | null
+          id?: string
+          issue_id?: string
+          keywords?: string[] | null
+          pages?: string | null
+          pdf_url?: string | null
+          published_at?: string
+          title?: string
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "articles_issue_id_fkey"
+            columns: ["issue_id"]
+            isOneToOne: false
+            referencedRelation: "issues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      issues: {
+        Row: {
+          created_at: string
+          id: string
+          is_current: boolean | null
+          issue_number: number
+          journal_id: string
+          month: string | null
+          published_at: string | null
+          volume: number
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_current?: boolean | null
+          issue_number: number
+          journal_id: string
+          month?: string | null
+          published_at?: string | null
+          volume: number
+          year: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_current?: boolean | null
+          issue_number?: number
+          journal_id?: string
+          month?: string | null
+          published_at?: string | null
+          volume?: number
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "issues_journal_id_fkey"
+            columns: ["journal_id"]
+            isOneToOne: false
+            referencedRelation: "journals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journals: {
+        Row: {
+          created_at: string
+          description: string | null
+          editor_in_chief: string | null
+          frequency: string | null
+          id: string
+          image_url: string | null
+          impact_factor: string | null
+          issn: string
+          scope: string | null
+          slug: string
+          subtitle: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          editor_in_chief?: string | null
+          frequency?: string | null
+          id?: string
+          image_url?: string | null
+          impact_factor?: string | null
+          issn: string
+          scope?: string | null
+          slug: string
+          subtitle?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          editor_in_chief?: string | null
+          frequency?: string | null
+          id?: string
+          image_url?: string | null
+          impact_factor?: string | null
+          issn?: string
+          scope?: string | null
+          slug?: string
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          affiliation: string | null
+          country: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          affiliation?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          affiliation?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      submissions: {
+        Row: {
+          abstract: string | null
+          authors: Json
+          editor_notes: string | null
+          id: string
+          journal_id: string
+          keywords: string[] | null
+          manuscript_url: string | null
+          status: string
+          submitted_at: string
+          supplementary_files: Json | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          abstract?: string | null
+          authors?: Json
+          editor_notes?: string | null
+          id?: string
+          journal_id: string
+          keywords?: string[] | null
+          manuscript_url?: string | null
+          status?: string
+          submitted_at?: string
+          supplementary_files?: Json | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          abstract?: string | null
+          authors?: Json
+          editor_notes?: string | null
+          id?: string
+          journal_id?: string
+          keywords?: string[] | null
+          manuscript_url?: string | null
+          status?: string
+          submitted_at?: string
+          supplementary_files?: Json | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submissions_journal_id_fkey"
+            columns: ["journal_id"]
+            isOneToOne: false
+            referencedRelation: "journals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +410,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
