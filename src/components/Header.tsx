@@ -67,7 +67,6 @@ const Header = () => {
             <Link to="/" className="nav-link">Home</Link>
             <a href="/#journals" className="nav-link">Journals</a>
             <Link to="/submit" className="nav-link">Submit Article</Link>
-            <a href="#contact" className="nav-link">Contact</a>
           </nav>
 
           <div className="flex items-center gap-3">
