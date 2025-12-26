@@ -211,36 +211,26 @@ const Admin = () => {
     }
   };
 
-  const getManuscriptUrl = async (path: string) => {
-    // Open a tab immediately to avoid popup blockers
-    const newTab = window.open('', '_blank');
+  const downloadManuscript = async (path: string) => {
+    const { data, error } = await supabase.storage.from('manuscripts').download(path);
 
-    const { data, error } = await supabase.storage
-      .from('manuscripts')
-      .createSignedUrl(path, 60 * 10);
-
-    const signed = (data as any)?.signedUrl ?? (data as any)?.signedURL;
-
-    if (error || !signed) {
-      newTab?.close();
+    if (error || !data) {
       toast({
         title: 'Download failed',
-        description: error?.message ?? 'Could not create a download link for this file.',
+        description: error?.message ?? 'Could not download this file.',
         variant: 'destructive',
       });
       return;
     }
 
-    // Some responses provide a relative path like "/object/sign/..."; convert to absolute URL.
-    const url = typeof signed === 'string' && signed.startsWith('http')
-      ? signed
-      : `${import.meta.env.VITE_SUPABASE_URL}/storage/v1${signed}`;
-
-    if (newTab) {
-      newTab.location.href = url;
-    } else {
-      window.location.assign(url);
-    }
+    const blobUrl = URL.createObjectURL(data);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = path.split('/').pop() || 'manuscript';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 1500);
   };
 
   const pendingCount = submissions?.filter(s => s.status === 'pending').length || 0;
@@ -298,7 +288,13 @@ const Admin = () => {
                       </div>
                       <div className="flex gap-2 flex-shrink-0">
                         {sub.manuscript_url && (
-                          <Button size="sm" variant="outline" onClick={() => getManuscriptUrl(sub.manuscript_url!)}><Download className="w-4 h-4" /></Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => downloadManuscript(sub.manuscript_url!)}
+                          >
+                            <Download className="w-4 h-4" />
+                          </Button>
                         )}
                         {sub.status === 'accepted' && (
                           <Button size="sm" variant="default" onClick={() => setPublishDialog(sub)}><BookOpen className="w-4 h-4 mr-1" />Publish</Button>
