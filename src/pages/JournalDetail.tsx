@@ -7,16 +7,72 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
   BookOpen, Calendar, Award, Users, FileText, 
-  Download, Eye, ArrowRight, ChevronRight 
+  Download, Eye, ArrowRight, FileDown
 } from 'lucide-react';
-import { useState } from 'react';
+
+// Component to display articles for an issue
+const IssueArticlesList = ({ issueId, journalSlug }: { issueId: string; journalSlug: string }) => {
+  const { data: articles, isLoading } = useIssueArticles(issueId);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        <Skeleton className="h-16 w-full" />
+        <Skeleton className="h-16 w-full" />
+      </div>
+    );
+  }
+
+  if (!articles || articles.length === 0) {
+    return <p className="text-muted-foreground text-sm">No articles in this issue yet.</p>;
+  }
+
+  return (
+    <div className="divide-y divide-border">
+      {articles.map((article) => (
+        <div key={article.id} className="py-4 first:pt-0 last:pb-0">
+          <Link 
+            to={`/journal/${journalSlug}/article/${article.id}`}
+            className="font-medium text-foreground hover:text-primary transition-colors block mb-1"
+          >
+            {article.title}
+          </Link>
+          <p className="text-sm text-muted-foreground">
+            {(article.authors as { name: string }[]).map(a => a.name).join(', ')}
+          </p>
+          <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+            {article.pages && <span>Pages: {article.pages}</span>}
+            <span className="flex items-center gap-1">
+              <Eye className="w-3 h-3" />
+              {article.views}
+            </span>
+            <span className="flex items-center gap-1">
+              <Download className="w-3 h-3" />
+              {article.downloads}
+            </span>
+            {article.pdf_url && (
+              <a 
+                href={article.pdf_url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-primary hover:underline"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <FileDown className="w-3 h-3" />
+                PDF
+              </a>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 const JournalDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const { data: journal, isLoading: journalLoading } = useJournal(slug || '');
   const { data: issues, isLoading: issuesLoading } = useJournalIssues(journal?.id || '');
-  const [selectedIssue, setSelectedIssue] = useState<string | null>(null);
-  const { data: articles } = useIssueArticles(selectedIssue || '');
 
   if (journalLoading) {
     return (
@@ -127,10 +183,6 @@ const JournalDetail = () => {
             <section id="issues">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-heading text-2xl font-bold text-foreground">Current Issue</h2>
-                <Button variant="outline" size="sm">
-                  View All Archives
-                  <ChevronRight className="w-4 h-4 ml-1" />
-                </Button>
               </div>
               
               {issuesLoading ? (
@@ -140,52 +192,19 @@ const JournalDetail = () => {
                 </div>
               ) : currentIssue ? (
                 <div className="bg-card border border-border rounded-lg p-6">
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h3 className="font-semibold text-foreground">
-                        Volume {currentIssue.volume}, Issue {currentIssue.issue_number}
+                      <h3 className="font-heading text-xl font-bold text-foreground">
+                        Vol. {currentIssue.volume} No. {currentIssue.issue_number} ({currentIssue.year})
                       </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {currentIssue.month} {currentIssue.year}
-                      </p>
+                      {currentIssue.month && (
+                        <p className="text-sm text-muted-foreground mt-1">{currentIssue.month}</p>
+                      )}
                     </div>
-                    <Badge variant="default">Current</Badge>
+                    <Badge variant="default">Current Issue</Badge>
                   </div>
                   
-                  {selectedIssue === currentIssue.id && articles ? (
-                    <div className="space-y-4">
-                      {articles.map((article) => (
-                        <div key={article.id} className="border-t border-border pt-4">
-                          <h4 className="font-medium text-foreground hover:text-primary cursor-pointer">
-                            {article.title}
-                          </h4>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {(article.authors as { name: string }[]).map(a => a.name).join(', ')}
-                          </p>
-                          <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <Eye className="w-4 h-4" />
-                              {article.views} views
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Download className="w-4 h-4" />
-                              {article.downloads} downloads
-                            </span>
-                            {article.pages && <span>Pages: {article.pages}</span>}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <Button 
-                      variant="outline" 
-                      className="w-full"
-                      onClick={() => setSelectedIssue(currentIssue.id)}
-                    >
-                      <FileText className="w-4 h-4 mr-2" />
-                      View Articles
-                    </Button>
-                  )}
+                  <IssueArticlesList issueId={currentIssue.id} journalSlug={slug || ''} />
                 </div>
               ) : (
                 <div className="bg-muted/50 rounded-lg p-8 text-center">
@@ -196,21 +215,16 @@ const JournalDetail = () => {
 
               {/* Archive List */}
               {issues && issues.length > 1 && (
-                <div className="mt-6">
-                  <h3 className="font-semibold text-foreground mb-3">Previous Issues</h3>
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    {issues.filter(i => i.id !== currentIssue?.id).slice(0, 4).map((issue) => (
-                      <div 
-                        key={issue.id}
-                        className="bg-card border border-border rounded-lg p-4 hover:border-primary cursor-pointer transition-colors"
-                        onClick={() => setSelectedIssue(issue.id)}
-                      >
-                        <p className="font-medium text-foreground">
-                          Vol. {issue.volume}, Issue {issue.issue_number}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {issue.month} {issue.year}
-                        </p>
+                <div className="mt-8">
+                  <h3 className="font-heading text-xl font-bold text-foreground mb-4">Previous Issues</h3>
+                  <div className="space-y-4">
+                    {issues.filter(i => i.id !== currentIssue?.id).map((issue) => (
+                      <div key={issue.id} className="bg-card border border-border rounded-lg p-6">
+                        <h4 className="font-heading text-lg font-semibold text-foreground mb-4">
+                          Vol. {issue.volume} No. {issue.issue_number} ({issue.year})
+                          {issue.month && <span className="text-muted-foreground font-normal ml-2">— {issue.month}</span>}
+                        </h4>
+                        <IssueArticlesList issueId={issue.id} journalSlug={slug || ''} />
                       </div>
                     ))}
                   </div>
