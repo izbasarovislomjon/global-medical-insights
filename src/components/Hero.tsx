@@ -1,12 +1,12 @@
-import { ArrowRight, BookOpen, Users, Award, Globe } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ArrowRight, BookOpen, Users, Award, Globe } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const Hero = () => {
   const stats = [
-    { icon: BookOpen, value: '12+', label: 'Journals' },
-    { icon: Users, value: '1500+', label: 'Authors' },
-    { icon: Award, value: '7.5', label: 'Avg. IF' },
-    { icon: Globe, value: '78', label: 'Countries' },
+    { icon: BookOpen, value: "12+", label: "Journals" },
+    { icon: Users, value: "1500+", label: "Authors" },
+    { icon: Award, value: "7.5", label: "Avg. IF" },
+    { icon: Globe, value: "78", label: "Countries" },
   ];
 
   return (
@@ -20,20 +20,29 @@ const Hero = () => {
       <div className="container mx-auto px-4 relative">
         <div className="max-w-4xl mx-auto text-center">
           <span className="inline-block px-4 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium mb-6 animate-fade-in">
-            🌍 International Scientific Publishing
+            International Scientific Publishing
           </span>
-          
-          <h1 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6 animate-fade-in leading-tight" style={{ animationDelay: '100ms' }}>
-            A Global Platform for 
+
+          <h1
+            className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6 animate-fade-in leading-tight"
+            style={{ animationDelay: "100ms" }}
+          >
+            A Global Platform for
             <span className="text-primary"> Quality Research</span>
           </h1>
-          
-          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto animate-fade-in leading-relaxed" style={{ animationDelay: '200ms' }}>
-            International Journal of Applied Medical Research - an open access, peer-reviewed 
-            international scientific journals platform. Share your research with the world.
+
+          <p
+            className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto animate-fade-in leading-relaxed"
+            style={{ animationDelay: "200ms" }}
+          >
+            International Journal of Applied Medical Research - an open access, peer-reviewed international scientific
+            journals platform. Share your research with the world.
           </p>
 
-          <div className="flex flex-wrap justify-center gap-4 mb-12 animate-fade-in" style={{ animationDelay: '300ms' }}>
+          <div
+            className="flex flex-wrap justify-center gap-4 mb-12 animate-fade-in"
+            style={{ animationDelay: "300ms" }}
+          >
             <Button className="btn-primary-journal gap-2 text-base px-6 py-3 h-auto">
               Submit Article
               <ArrowRight className="w-5 h-5" />
@@ -46,7 +55,7 @@ const Hero = () => {
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
             {stats.map((stat, index) => (
-              <div 
+              <div
                 key={index}
                 className="bg-card rounded-xl p-4 shadow-card border border-border animate-fade-in"
                 style={{ animationDelay: `${400 + index * 100}ms` }}
