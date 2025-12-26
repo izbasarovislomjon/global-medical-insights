@@ -74,6 +74,60 @@ const ArticleDetail = () => {
   const { articleId } = useParams<{ articleId: string }>();
   const { data: article, isLoading } = useArticle(articleId || '');
   const [showPdfViewer, setShowPdfViewer] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [pdfLoading, setPdfLoading] = useState(false);
+
+  const getPdfUrl = async () => {
+    if (!articleId) return null;
+    if (!article?.pdf_url) {
+      toast({
+        title: 'PDF mavjud emas',
+        description: 'Bu maqola uchun PDF yuklanmagan.',
+        variant: 'destructive',
+      });
+      return null;
+    }
+
+    if (pdfUrl) return pdfUrl;
+
+    setPdfLoading(true);
+    const { data, error } = await supabase.functions.invoke('article-pdf', {
+      body: { articleId },
+    });
+    setPdfLoading(false);
+
+    const url = (data as any)?.url as string | undefined;
+    if (error || !url) {
+      toast({
+        title: 'PDF ochilmadi',
+        description: (error as any)?.message ?? 'PDF link yaratib bo\'lmadi.',
+        variant: 'destructive',
+      });
+      return null;
+    }
+
+    setPdfUrl(url);
+    return url;
+  };
+
+  const handleReadOnline = async () => {
+    const url = await getPdfUrl();
+    if (!url) return;
+    setShowPdfViewer(true);
+  };
+
+  const handleDownload = async () => {
+    // Open immediately to avoid popup blockers
+    const newTab = window.open('', '_blank');
+    const url = await getPdfUrl();
+    if (!url) {
+      newTab?.close();
+      return;
+    }
+
+    if (newTab) newTab.location.href = url;
+    else window.location.assign(url);
+  };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -217,7 +271,7 @@ const ArticleDetail = () => {
             )}
 
             {/* PDF Viewer */}
-            {showPdfViewer && article.pdf_url && (
+            {showPdfViewer && (
               <div className="bg-card border border-border rounded-lg overflow-hidden">
                 <div className="flex items-center justify-between p-4 border-b border-border">
                   <h2 className="font-semibold text-foreground">Full Text (PDF)</h2>
@@ -225,11 +279,23 @@ const ArticleDetail = () => {
                     Close
                   </Button>
                 </div>
-                <iframe
-                  src={article.pdf_url}
-                  className="w-full h-[600px]"
-                  title="PDF Viewer"
-                />
+
+                {pdfLoading ? (
+                  <div className="p-6">
+                    <Skeleton className="h-6 w-48 mb-3" />
+                    <Skeleton className="h-64 w-full" />
+                  </div>
+                ) : pdfUrl ? (
+                  <iframe
+                    src={pdfUrl}
+                    className="w-full h-[600px]"
+                    title="PDF Viewer"
+                  />
+                ) : (
+                  <div className="p-6 text-sm text-muted-foreground">
+                    PDF link topilmadi.
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -244,19 +310,14 @@ const ArticleDetail = () => {
               </h3>
               {article.pdf_url ? (
                 <div className="space-y-3">
-                  <Button
-                    className="w-full"
-                    onClick={() => setShowPdfViewer(true)}
-                  >
+                  <Button className="w-full" onClick={handleReadOnline} disabled={pdfLoading}>
                     <Eye className="w-4 h-4 mr-2" />
                     Read Online (PDF)
                   </Button>
-                  <a href={article.pdf_url} target="_blank" rel="noopener noreferrer" download>
-                    <Button variant="outline" className="w-full">
-                      <Download className="w-4 h-4 mr-2" />
-                      Download PDF
-                    </Button>
-                  </a>
+                  <Button variant="outline" className="w-full" onClick={handleDownload} disabled={pdfLoading}>
+                    <Download className="w-4 h-4 mr-2" />
+                    Download PDF
+                  </Button>
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">PDF not available</p>
