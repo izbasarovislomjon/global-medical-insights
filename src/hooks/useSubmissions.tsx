@@ -26,10 +26,7 @@ export const useMySubmissions = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('submissions')
-        .select(`
-          *,
-          journals (title, slug)
-        `)
+        .select(`*, journals (title, slug)`)
         .eq('user_id', user!.id)
         .order('submitted_at', { ascending: false });
       
@@ -46,11 +43,7 @@ export const useAllSubmissions = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('submissions')
-        .select(`
-          *,
-          journals (title, slug),
-          profiles (full_name, email)
-        `)
+        .select(`*, journals (title, slug), profiles (full_name, email)`)
         .order('submitted_at', { ascending: false });
       
       if (error) throw error;
@@ -70,13 +63,11 @@ export const useCreateSubmission = () => {
       abstract: string;
       keywords: string[];
       authors: { name: string; affiliation: string; email: string }[];
+      manuscript_url?: string | null;
     }) => {
       const { data, error } = await supabase
         .from('submissions')
-        .insert({
-          ...submission,
-          user_id: user!.id
-        })
+        .insert({ ...submission, user_id: user!.id })
         .select()
         .single();
       
@@ -111,6 +102,20 @@ export const useUpdateSubmissionStatus = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-submissions'] });
       queryClient.invalidateQueries({ queryKey: ['my-submissions'] });
+    }
+  });
+};
+
+export const useDeleteSubmission = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('submissions').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-submissions'] });
     }
   });
 };
