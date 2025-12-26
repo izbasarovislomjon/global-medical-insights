@@ -78,19 +78,20 @@ const ArticlePdfViewer = () => {
 
   // Increment view count once when PDF is loaded
   useEffect(() => {
-    if (pdfSignedUrl && articleId && !viewIncremented) {
-      supabase
-        .from('articles')
-        .update({ views: supabase.rpc ? undefined : undefined })
-        .eq('id', articleId)
-        .then(() => {});
-      
-      // Use raw SQL increment via RPC or direct update
-      supabase.rpc('increment_article_views', { article_id: articleId }).catch(() => {
-        // Fallback: ignore if function doesn't exist
-      });
-      setViewIncremented(true);
-    }
+    if (!pdfSignedUrl || !articleId || viewIncremented) return;
+
+    const increment = async () => {
+      try {
+        // Prefer atomic increment via RPC (cast avoids TS restriction until types include the function)
+        await (supabase as any).rpc('increment_article_views', { article_id: articleId });
+      } catch {
+        // Ignore if function doesn't exist / blocked by policies
+      } finally {
+        setViewIncremented(true);
+      }
+    };
+
+    increment();
   }, [pdfSignedUrl, articleId, viewIncremented]);
 
   const handleDownload = async () => {
@@ -115,9 +116,12 @@ const ArticlePdfViewer = () => {
 
       // Increment download count
       if (articleId) {
-        supabase.rpc('increment_article_downloads', { article_id: articleId }).catch(() => {});
+        try {
+          await (supabase as any).rpc('increment_article_downloads', { article_id: articleId });
+        } catch {
+          // Ignore if function doesn't exist / blocked by policies
+        }
       }
-    } catch (e) {
       toast({
         title: 'Download failed',
         description: 'Error downloading PDF.',
