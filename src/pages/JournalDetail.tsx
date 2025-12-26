@@ -17,9 +17,6 @@ const IssueArticlesList = ({ issueId, journalSlug }: { issueId: string; journalS
   const { data: articles, isLoading } = useIssueArticles(issueId);
 
   const openPdf = async (articleId: string) => {
-    // Open immediately to avoid popup blockers
-    const newTab = window.open('', '_blank');
-
     const { data, error } = await supabase.functions.invoke('article-pdf', {
       body: { articleId },
     });
@@ -27,7 +24,6 @@ const IssueArticlesList = ({ issueId, journalSlug }: { issueId: string; journalS
     const url = (data as any)?.url as string | undefined;
 
     if (error || !url) {
-      newTab?.close();
       toast({
         title: 'PDF ochilmadi',
         description: (error as any)?.message ?? 'PDF link yaratib bo\'lmadi.',
@@ -36,8 +32,8 @@ const IssueArticlesList = ({ issueId, journalSlug }: { issueId: string; journalS
       return;
     }
 
-    if (newTab) newTab.location.href = url;
-    else window.location.assign(url);
+    // Navigate in the same tab (works reliably inside embedded previews too)
+    window.location.assign(url);
   };
 
   if (isLoading) {

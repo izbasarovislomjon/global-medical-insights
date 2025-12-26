@@ -13,6 +13,8 @@ const corsHeaders: Record<string, string> = {
 type Json = string | number | boolean | null | { [key: string]: Json } | Json[];
 
 serve(async (req) => {
+  console.log(`[article-pdf] ${req.method} ${new URL(req.url).pathname}`);
+
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
